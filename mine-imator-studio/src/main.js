@@ -1203,6 +1203,10 @@ function wire() {
   $('#btnExport').onclick = () => { $('#modalExport').hidden = false; setExportMode(state.exportMode); };
   $('#btnHelp').onclick = () => { $('#modalHelp').hidden = false; };
   $('#btnHelpClose').onclick = () => { $('#modalHelp').hidden = true; };
+  /* clicking the dimmed backdrop closes any modal (and Escape cancels it) */
+  $$('.modal-wrap').forEach((wrap) => {
+    wrap.addEventListener('pointerdown', (e) => { if (e.target === wrap && !state.exporting) wrap.hidden = true; });
+  });
   $('#btnLang').onclick = () => { state.lang = state.lang === 'ar' ? 'en' : 'ar'; applyLang(); };
 
   $('#fileInput').onchange = async (e) => {
@@ -1396,6 +1400,11 @@ function wire() {
       if (k === 's') { e.preventDefault(); saveProjectFile(); }
       if (k === 'z') { e.preventDefault(); undo(); }
       if (k === 'e') { e.preventDefault(); $('#modalExport').hidden = false; setExportMode(state.exportMode); }
+      return;
+    }
+    if (e.key === 'Escape') {
+      if (!$('#modalHelp').hidden) { $('#modalHelp').hidden = true; return; }
+      if (!$('#modalExport').hidden && !state.exporting) { $('#modalExport').hidden = true; return; }
       return;
     }
     if (k === ' ') { e.preventDefault(); setPlaying(!state.playing); }

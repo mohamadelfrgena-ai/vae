@@ -23,6 +23,10 @@
 }
 
 * { box-sizing: border-box; }
+/* the UA rule for [hidden] is only display:none at normal specificity, so any
+   author `display` (grid/flex/…) on the same element would beat it and keep the
+   element visible. This must stay above every component rule. */
+[hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
 body {
   background: var(--bg);
