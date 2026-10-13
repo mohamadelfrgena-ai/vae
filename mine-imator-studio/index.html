@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Mine-Imator Studio — استوديو أنيميشن ماين كرافت</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%2334d399'/><rect x='3' y='4' width='4' height='3' fill='%230b1220'/><rect x='9' y='4' width='4' height='3' fill='%230b1220'/><rect x='5' y='9' width='6' height='2' fill='%230b1220'/></svg>" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">▦</span>
+      <div class="brand-txt">
+        <b>Mine-Imator Studio</b>
+        <small data-i18n="tagline">استوديو أنيميشن بلوكي في المتصفح</small>
+      </div>
+    </div>
+
+    <input id="projectName" class="projname" value="مشروعي الأول" spellcheck="false" />
+
+    <div class="spacer"></div>
+
+    <button class="btn" id="btnNew" data-i18n="new" title="New">جديد</button>
+    <button class="btn" id="btnSave" data-i18n="save" title="Save (Ctrl+S)">حفظ</button>
+    <button class="btn" id="btnOpen" data-i18n="open" title="Open">فتح</button>
+    <button class="btn primary" id="btnExport" data-i18n="export" title="Export">تصدير ⤓</button>
+    <button class="btn ghost" id="btnHelp" title="Help">؟</button>
+    <button class="btn ghost" id="btnLang">EN</button>
+    <input type="file" id="fileInput" accept=".json,.png" hidden />
+  </header>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+
+    <!-- ---------- LEFT PANEL ---------- -->
+    <aside class="panel left" id="leftPanel">
+      <div class="tabs" data-tabs="left">
+        <button class="tab active" data-pane="world" data-i18n="tabWorld">العالم</button>
+        <button class="tab" data-pane="char" data-i18n="tabChar">الشخصية</button>
+        <button class="tab" data-pane="motion" data-i18n="tabMotion">حركات جاهزة</button>
+      </div>
+
+      <!-- WORLD -->
+      <div class="pane active" data-pane="world">
+        <h4 data-i18n="palette">لوحة البلوكات</h4>
+        <div class="blocks" id="blockPalette"></div>
+
+        <div class="row">
+          <button class="btn tiny active" id="btnModePlace" data-i18n="modePlace">🧱 بناء</button>
+          <button class="btn tiny" id="btnModeErase" data-i18n="modeErase">🧽 حذف</button>
+        </div>
+        <p class="hint" data-i18n="buildHint">في وضع البناء: اضغط على الأرضية أو على وجه بلوك لإضافة بلوك. عجلة الفأرة للدوران، وزر أوسط للسحب.</p>
+
+        <h4 data-i18n="worldStyle">طابع العالم</h4>
+        <div class="chips" id="worldPresets"></div>
+
+        <h4 data-i18n="sceneActions">أدوات</h4>
+        <div class="row wrap">
+          <button class="btn tiny" id="btnTree" data-i18n="addTree">🌳 شجرة</button>
+          <button class="btn tiny" id="btnRing" data-i18n="addProps">🏠 عناصر</button>
+          <button class="btn tiny" id="btnClearBlocks" data-i18n="clearBlocks">تفريغ الأرض</button>
+          <button class="btn tiny" id="btnResetWorld" data-i18n="resetWorld">إعادة الملعب</button>
+        </div>
+      </div>
+
+      <!-- CHARACTER -->
+      <div class="pane" data-pane="char">
+        <h4 data-i18n="modelType">نوع الموديل</h4>
+        <div class="row">
+          <button class="btn tiny active" id="btnClassic" data-i18n="classic">كلاسيكي</button>
+          <button class="btn tiny" id="btnSlim" data-i18n="slim">نحيف</button>
+        </div>
+
+        <h4 data-i18n="colors">الألوان</h4>
+        <div class="colors" id="colorGrid"></div>
+
+        <h4 data-i18n="quickSkins">جلود جاهزة</h4>
+        <div class="chips" id="skinPresets"></div>
+
+        <h4 data-i18n="rigTools">التحكم بالجسم</h4>
+        <div class="row wrap">
+          <button class="btn tiny" id="btnRestPose" data-i18n="restPose">وضع الراحة</button>
+          <button class="btn tiny" id="btnTpose" data-i18n="tpose">وضع T</button>
+          <button class="btn tiny" id="btnFlip">↔ <span data-i18n="mirror">عكس</span></button>
+        </div>
+      </div>
+
+      <!-- MOTION -->
+      <div class="pane" data-pane="motion">
+        <h4 data-i18n="presets">حركات جاهزة</h4>
+        <div class="presets" id="motionPresets"></div>
+        <p class="hint" data-i18n="presetHint">اختيار حركة يكتب الكي فريمات على التايم لاين — تقدر تعدلها بعدها بحرية.</p>
+        <div class="row">
+          <button class="btn tiny danger" id="btnClearAnim" data-i18n="clearAnim">حذف كل الأنيميشن</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ---------- STAGE ---------- -->
+    <section class="stage">
+      <div class="viewport" id="viewport">
+        <canvas id="c"></canvas>
+
+        <div class="vp-top">
+          <div class="pill" id="camViews">
+            <button data-view="front" data-i18n="vFront">أمامي</button>
+            <button data-view="side" data-i18n="vSide">جانبي</button>
+            <button data-view="top" data-i18n="vTop">علوي</button>
+            <button data-view="iso" class="active" data-i18n="vIso">٣د</button>
+            <button data-view="face" data-i18n="vFace">بورتريه</button>
+          </div>
+          <div class="pill">
+            <button id="btnCamKey" title="Set camera keyframe">🎥 <span data-i18n="camKey">كي كاميرا</span></button>
+            <button id="btnCamEnable" data-i18n="camAnim">كاميرا متحركة</button>
+            <button id="btnCamClear" title="Clear camera keys">✕</button>
+          </div>
+        </div>
+
+        <div class="vp-badge" id="vpBadge">24 FPS · 0.0s</div>
+        <div class="vp-toast" id="toast"></div>
+
+        <button class="vp-drawer" id="btnLeftDrawer" title="Panels">☰</button>
+      </div>
+
+      <div class="playbar">
+        <button class="pbtn" id="btnStart" title="Start">⏮</button>
+        <button class="pbtn" id="btnPrev" title="Prev frame">◀</button>
+        <button class="pbtn big" id="btnPlay" title="Play/Pause (Space)">▶</button>
+        <button class="pbtn" id="btnNext" title="Next frame">▶</button>
+        <button class="pbtn" id="btnEnd" title="End">⏭</button>
+        <button class="pbtn" id="btnLoop" title="Loop" data-on="1">⟲</button>
+
+        <span class="clock" id="clock">0 / 96</span>
+
+        <label class="mini"><span data-i18n="fps">إطارات/ث</span>
+          <input type="number" id="inpFps" min="1" max="60" step="1" value="24" />
+        </label>
+        <label class="mini"><span data-i18n="length">المدة</span>
+          <input type="number" id="inpDur" min="8" max="1200" step="1" value="96" />
+        </label>
+        <label class="mini check">
+          <input type="checkbox" id="chkAutoKey" checked />
+          <span data-i18n="autoKey">تسجيل تلقائي ♦</span>
+        </label>
+
+        <div class="spacer"></div>
+        <button class="btn tiny" id="btnShot" data-i18n="snapshot">📸 لقطة</button>
+      </div>
+    </section>
+
+    <!-- ---------- RIGHT PANEL ---------- -->
+    <aside class="panel right" id="rightPanel">
+      <h4 data-i18n="bone">العظمة المحددة</h4>
+      <select id="boneSelect" class="select"></select>
+
+      <div class="sliders" id="poseSliders"></div>
+
+      <div class="row">
+        <button class="btn tiny primary" id="btnKeyPose" data-i18n="keyPose">♦ كي الآن</button>
+        <button class="btn tiny" id="btnResetBone" data-i18n="resetBone">تصفير</button>
+      </div>
+
+      <h4 data-i18n="selectedKey">الكي المحدد</h4>
+      <div class="keyinfo" id="keyInfo" data-i18n="noKey">لا يوجد كي محدد</div>
+      <div class="row wrap">
+        <button class="btn tiny" id="btnKeyPrev" data-i18n="prevKey">◀ السابق</button>
+        <button class="btn tiny" id="btnKeyNext" data-i18n="nextKey">التالي ▶</button>
+        <button class="btn tiny danger" id="btnKeyDel" data-i18n="delKey">حذف الكي</button>
+      </div>
+
+      <h4 data-i18n="shortcuts">اختصارات</h4>
+      <ul class="keys">
+        <li><kbd>Space</kbd> <span data-i18n="scPlay">تشغيل/إيقاف</span></li>
+        <li><kbd>←</kbd><kbd>→</kbd> <span data-i18n="scStep">فريم للأمام/الخلف</span></li>
+        <li><kbd>K</kbd> <span data-i18n="scKey">إضافة كي للعظمة</span></li>
+        <li><kbd>Del</kbd> <span data-i18n="scDel">حذف الكي المحدد</span></li>
+        <li><kbd>Ctrl</kbd>+<kbd>S</kbd> <span data-i18n="scSave">حفظ المشروع</span></li>
+      </ul>
+    </aside>
+  </main>
+
+  <!-- ===================== TIMELINE ===================== -->
+  <footer class="timeline" id="timeline" dir="ltr">
+    <div class="tl-toolbar">
+      <button class="btn tiny primary" id="btnTlKey">◆ <span data-i18n="keyPose">كي الآن</span></button>
+      <button class="btn tiny" id="btnTlDel" data-i18n="delKey">حذف الكي</button>
+      <label class="mini"><span data-i18n="ease">نعومة</span>
+        <select id="easeSel">
+          <option value="smooth" data-i18n="easeSmooth">ناعم</option>
+          <option value="linear" data-i18n="easeLinear">خطي</option>
+          <option value="step" data-i18n="easeStep">ثابت</option>
+        </select>
+      </label>
+      <span class="tl-info" id="tlInfo"></span>
+      <div class="spacer"></div>
+      <button class="btn tiny" id="btnTlZoomOut">−</button>
+      <button class="btn tiny" id="btnTlZoomIn">+</button>
+      <button class="btn tiny" id="btnTlToggle" title="Collapse">▾</button>
+    </div>
+    <div class="tl-body" id="tlBody">
+      <div class="tl-names" id="tlNames"></div>
+      <div class="tl-scroll" id="tlScroll">
+        <div class="tl-inner" id="tlInner">
+          <div class="tl-ruler" id="tlRuler"></div>
+          <div class="tl-tracks" id="tlTracks"></div>
+          <div class="tl-playhead" id="tlPlayhead"><i></i></div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+<div class="modal-wrap" id="modalExport" hidden>
+  <div class="modal">
+    <h3 data-i18n="exportTitle">تصدير</h3>
+    <div class="row wrap">
+      <button class="btn tiny active" data-exp="video" data-i18n="expVideo">🎬 فيديو WebM</button>
+      <button class="btn tiny" data-exp="frames" data-i18n="expFrames">🖼 صور PNG (ZIP)</button>
+      <button class="btn tiny" data-exp="json" data-i18n="expJson">📄 ملف المشروع</button>
+    </div>
+
+    <div class="exp-opts" id="expOptsVideo">
+      <label class="mini"><span data-i18n="quality">الدقة</span>
+        <select id="expRes">
+          <option value="720">720p</option>
+          <option value="1080" selected>1080p</option>
+          <option value="1440">1440p</option>
+          <option value="src" data-i18n="expSrc">حجم النافذة</option>
+        </select>
+      </label>
+      <label class="mini"><span data-i18n="expFps">إطارات التصدير</span>
+        <select id="expFps">
+          <option value="24" selected>24</option>
+          <option value="30">30</option>
+          <option value="60">60</option>
+        </select>
+      </label>
+      <p class="hint" data-i18n="videoHint">التسجيل يتم لحظياً (ريل-تايم) من المتصفح مباشرة — خلّي التاب مفتوح أثناء التصدير.</p>
+    </div>
+
+    <div class="exp-opts" id="expOptsFrames" hidden>
+      <p class="hint" data-i18n="framesHint">كل إطار في الأنيميشن يُصدَّر كصورة PNG داخل ملف ZIP واحد — ممتاز لو تحب تركّبها في برنامج مونتاج.</p>
+    </div>
+
+    <div class="progress" id="expProgress" hidden><div class="bar" id="expBar"></div><span id="expPct">0%</span></div>
+
+    <div class="row end">
+      <button class="btn" id="btnExpCancel" data-i18n="cancel">إلغاء</button>
+      <button class="btn primary" id="btnExpRun" data-i18n="start">ابدأ التصدير</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="modalHelp" hidden>
+  <div class="modal wide">
+    <h3 data-i18n="helpTitle">كيف تستخدم الاستوديو؟</h3>
+    <ol class="helplist" id="helpList"></ol>
+    <div class="row end"><button class="btn primary" id="btnHelpClose" data-i18n="ok">تمام</button></div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
